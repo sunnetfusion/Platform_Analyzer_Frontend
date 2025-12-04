@@ -75,7 +75,7 @@ const LegitimacyAnalyzer: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   
   // API base URL - defaults to localhost:8000 for development
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://platform-analyzer-backend.onrender.com';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://platform-analyzer-backend.onrender.com/api';
 
   const testimonials = [
     { text: "This tool saved me from losing $5,000 to a fake investment platform!", author: "Sarah M.", rating: 5 },
