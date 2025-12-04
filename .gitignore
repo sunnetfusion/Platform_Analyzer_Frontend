@@ -34,3 +34,5 @@ yarn-debug.log*
 # Misc
 .cache/
 EOF
+.vercel
+.env*.local
