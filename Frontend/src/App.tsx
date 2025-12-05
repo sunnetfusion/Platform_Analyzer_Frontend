@@ -64,6 +64,14 @@ interface AnalysisResult {
   ponziCalculation: PonziCalculation | null;
   scamProbability: string;
   recommendation: string;
+  // Added for compatibility with the mock data structure in the backend
+  peopleExperience?: {
+    experienceScore: number;
+    userExperienceRating: string;
+    hasTestimonials: boolean;
+    hasSocialProof: boolean;
+    hasSupport: boolean;
+  };
 }
 
 const LegitimacyAnalyzer: React.FC = () => {
@@ -74,8 +82,9 @@ const LegitimacyAnalyzer: React.FC = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [error, setError] = useState<string | null>(null);
   
-  // API base URL - defaults to localhost:8000 for development
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://platform-analyzer-backend.onrender.com/api';
+  // FIXED: Removed import.meta.env to resolve compilation warning.
+  // Using the known public URL directly for the backend communication.
+  const API_BASE_URL = 'https://platform-analyzer-backend.onrender.com';
 
   const testimonials = [
     { text: "This tool saved me from losing $5,000 to a fake investment platform!", author: "Sarah M.", rating: 5 },
@@ -100,7 +109,7 @@ const LegitimacyAnalyzer: React.FC = () => {
     setError(null);
     
     // Show analysis steps with animation
-    const steps = [
+    const steps: AnalysisStep[] = [
       { icon: Globe, label: 'Performing WHOIS lookup...', delay: 500 },
       { icon: Shield, label: 'Checking SSL certificate...', delay: 700 },
       { icon: Database, label: 'Analyzing domain history...', delay: 900 },
@@ -113,14 +122,14 @@ const LegitimacyAnalyzer: React.FC = () => {
     
     // Animate steps while API call is in progress
     const stepPromises = steps.map((step, index) => 
-      new Promise(resolve => setTimeout(() => {
+      new Promise<void>(resolve => setTimeout(() => {
         setAnalysisSteps(prev => [...prev, step]);
-        resolve(null);
+        resolve();
       }, step.delay))
     );
     
     try {
-      // Make API call to backend
+      // Make API call to backend (uses /api/analyze path)
       const response = await fetch(`${API_BASE_URL}/api/analyze`, {
         method: 'POST',
         headers: {
@@ -137,14 +146,14 @@ const LegitimacyAnalyzer: React.FC = () => {
         throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      const data: AnalysisResult = await response.json();
       
       // Set the result
-      setResult(data as AnalysisResult);
+      setResult(data);
       setAnalyzing(false);
     } catch (err) {
       console.error('Analysis error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to analyze website. Please check if the backend is running and try again.');
+      setError(err instanceof Error ? err.message : 'Failed to analyze website. Please check if the backend is running and the URL is correct.');
       setAnalyzing(false);
       setAnalysisSteps([]);
     }
@@ -167,6 +176,9 @@ const LegitimacyAnalyzer: React.FC = () => {
     if (type === 'warning') return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
     return <CheckCircle className="w-5 h-5 text-blue-500" />;
   };
+
+  // Helper function to safely access nested data, mirroring the type casting used previously
+  const resultAsAny = result as any;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-6 relative overflow-hidden">
@@ -354,7 +366,7 @@ const LegitimacyAnalyzer: React.FC = () => {
             </div>
 
             {/* People Discovery & Experience Section */}
-            {(result as any).peopleExperience && (
+            {resultAsAny.peopleExperience && (
               <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-2xl p-8 text-white">
                 <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
                   <Users className="w-6 h-6" />
@@ -364,17 +376,17 @@ const LegitimacyAnalyzer: React.FC = () => {
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
                     <h4 className="font-bold text-lg mb-4">User Experience Rating</h4>
                     <div className="text-4xl font-bold mb-2">
-                      {(result as any).peopleExperience.experienceScore || 50}/100
+                      {resultAsAny.peopleExperience.experienceScore || 50}/100
                     </div>
                     <p className="text-sm opacity-90">
-                      Rating: {(result as any).peopleExperience.userExperienceRating || 'Fair'}
+                      Rating: {resultAsAny.peopleExperience.userExperienceRating || 'Fair'}
                     </p>
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
                     <h4 className="font-bold text-lg mb-4">Experience Indicators</h4>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        {(result as any).peopleExperience.hasTestimonials ? (
+                        {resultAsAny.peopleExperience.hasTestimonials ? (
                           <CheckCircle className="w-5 h-5 text-green-300" />
                         ) : (
                           <XCircle className="w-5 h-5 text-red-300" />
@@ -382,7 +394,7 @@ const LegitimacyAnalyzer: React.FC = () => {
                         <span>User Testimonials Found</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {(result as any).peopleExperience.hasSocialProof ? (
+                        {resultAsAny.peopleExperience.hasSocialProof ? (
                           <CheckCircle className="w-5 h-5 text-green-300" />
                         ) : (
                           <XCircle className="w-5 h-5 text-red-300" />
@@ -390,7 +402,7 @@ const LegitimacyAnalyzer: React.FC = () => {
                         <span>Social Proof Indicators</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {(result as any).peopleExperience.hasSupport ? (
+                        {resultAsAny.peopleExperience.hasSupport ? (
                           <CheckCircle className="w-5 h-5 text-green-300" />
                         ) : (
                           <XCircle className="w-5 h-5 text-red-300" />
@@ -409,7 +421,7 @@ const LegitimacyAnalyzer: React.FC = () => {
               <div className="space-y-3">
                 {result.findings.map((finding, idx) => (
                   <div key={idx} className="flex items-start gap-3 p-4 bg-gradient-to-r from-slate-50 to-purple-50 rounded-xl hover:shadow-md transition-all">
-                    {getFindingIcon(finding.type)}
+                    {getFindingIcon(finding.type as 'critical' | 'warning' | 'info')}
                     <span className="text-slate-700 font-medium">{finding.text}</span>
                   </div>
                 ))}
