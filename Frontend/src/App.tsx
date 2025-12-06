@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, AlertTriangle, CheckCircle, XCircle, Calendar, Shield, Users, TrendingDown, Database, Globe, Image, DollarSign, FileText, Activity, ChevronLeft, ChevronRight, Sparkles, Zap } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle, XCircle, Calendar, Shield, Users, TrendingDown, Database, Globe, Image, DollarSign, FileText, Activity, Sparkles, Zap } from 'lucide-react';
+import CommentsSection from './CommentsSection';
 
 interface AnalysisStep {
   icon: React.ComponentType<any>;
@@ -64,7 +65,6 @@ interface AnalysisResult {
   ponziCalculation: PonziCalculation | null;
   scamProbability: string;
   recommendation: string;
-  // Added for compatibility with the mock data structure in the backend
   peopleExperience?: {
     experienceScore: number;
     userExperienceRating: string;
@@ -82,8 +82,6 @@ const LegitimacyAnalyzer: React.FC = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [error, setError] = useState<string | null>(null);
   
-  // FIXED: Removed import.meta.env to resolve compilation warning.
-  // Using the known public URL directly for the backend communication.
   const API_BASE_URL = 'https://platform-analyzer-backend.onrender.com';
 
   const testimonials = [
@@ -108,7 +106,6 @@ const LegitimacyAnalyzer: React.FC = () => {
     setResult(null);
     setError(null);
     
-    // Show analysis steps with animation
     const steps: AnalysisStep[] = [
       { icon: Globe, label: 'Performing WHOIS lookup...', delay: 500 },
       { icon: Shield, label: 'Checking SSL certificate...', delay: 700 },
@@ -120,7 +117,6 @@ const LegitimacyAnalyzer: React.FC = () => {
       { icon: DollarSign, label: 'Calculating financial viability...', delay: 1900 }
     ];
     
-    // Animate steps while API call is in progress
     const stepPromises = steps.map((step, index) => 
       new Promise<void>(resolve => setTimeout(() => {
         setAnalysisSteps(prev => [...prev, step]);
@@ -129,7 +125,6 @@ const LegitimacyAnalyzer: React.FC = () => {
     );
     
     try {
-      // Make API call to backend (uses /api/analyze path)
       const response = await fetch(`${API_BASE_URL}/api/analyze`, {
         method: 'POST',
         headers: {
@@ -138,7 +133,6 @@ const LegitimacyAnalyzer: React.FC = () => {
         body: JSON.stringify({ url: url }),
       });
       
-      // Wait for all steps to complete
       await Promise.all(stepPromises);
       
       if (!response.ok) {
@@ -148,7 +142,6 @@ const LegitimacyAnalyzer: React.FC = () => {
       
       const data: AnalysisResult = await response.json();
       
-      // Set the result
       setResult(data);
       setAnalyzing(false);
     } catch (err) {
@@ -177,7 +170,6 @@ const LegitimacyAnalyzer: React.FC = () => {
     return <CheckCircle className="w-5 h-5 text-blue-500" />;
   };
 
-  // Helper function to safely access nested data, mirroring the type casting used previously
   const resultAsAny = result as any;
 
   return (
@@ -415,7 +407,7 @@ const LegitimacyAnalyzer: React.FC = () => {
               </div>
             )}
 
-            {/* Rest of the results with enhanced styling */}
+            {/* Key Findings */}
             <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-purple-200">
               <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">Key Findings</h3>
               <div className="space-y-3">
@@ -428,7 +420,7 @@ const LegitimacyAnalyzer: React.FC = () => {
               </div>
             </div>
 
-            {/* Final Recommendation with Bold Styling */}
+            {/* Final Recommendation */}
             <div className="bg-gradient-to-r from-slate-900 to-purple-900 text-white rounded-2xl p-8 shadow-2xl transform hover:scale-[1.02] transition-all">
               <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-yellow-400" />
@@ -436,6 +428,9 @@ const LegitimacyAnalyzer: React.FC = () => {
               </h3>
               <p className="text-xl leading-relaxed">{result.recommendation}</p>
             </div>
+
+            {/* User Comments Section */}
+            <CommentsSection url={result.url} />
           </div>
         )}
 
