@@ -314,16 +314,20 @@ const LegitimacyAnalyzer: React.FC = () => {
                 <p className="text-sm opacity-90 mt-1">Server: {result.serverLocation}</p>
               </div>
 
-              <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
-                <AlertTriangle className="w-8 h-8 mb-3 animate-bounce" />
-                <h3 className="font-bold text-lg mb-2">Withdrawals</h3>
-                <p className="text-3xl font-bold">{result.withdrawalComplaints}</p>
-                <p className="text-sm opacity-90 mt-1">Complaints detected</p>
+              <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
+                <Shield className="w-8 h-8 mb-3 animate-pulse" />
+                <h3 className="font-bold text-lg mb-2">Threat Status</h3>
+                <p className="text-2xl font-bold">
+                  {result.scamProbability === "CRITICAL - 100%" ? "🚨 DANGER" : 
+                   result.trustScore >= 70 ? "✅ Clean" : 
+                   result.trustScore >= 40 ? "⚠️ Caution" : "🔴 High Risk"}
+                </p>
+                <p className="text-sm opacity-90 mt-1">Malware Scan Complete</p>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
+              <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
                 <TrendingDown className="w-8 h-8 mb-3 animate-pulse" />
-                <h3 className="font-bold text-lg mb-2">Scam Risk</h3>
+                <h3 className="font-bold text-lg mb-2">Risk Level</h3>
                 <p className="text-3xl font-bold">{result.scamProbability}</p>
               </div>
             </div>
@@ -409,24 +413,73 @@ const LegitimacyAnalyzer: React.FC = () => {
 
             {/* Key Findings */}
             <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-purple-200">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">Key Findings</h3>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+                Security Analysis & Key Findings
+              </h3>
+              
+              {/* Critical Warning Banner if scam detected */}
+              {result.trustScore === 0 && (
+                <div className="mb-6 bg-gradient-to-r from-red-600 to-rose-700 text-white rounded-xl p-6 border-4 border-red-800 animate-pulse">
+                  <div className="flex items-center gap-4">
+                    <div className="text-6xl">🚨</div>
+                    <div>
+                      <h4 className="text-2xl font-bold mb-2">CRITICAL SECURITY THREAT DETECTED</h4>
+                      <p className="text-lg">This website has been flagged as malicious. Close this page immediately!</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-3">
                 {result.findings.map((finding, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-4 bg-gradient-to-r from-slate-50 to-purple-50 rounded-xl hover:shadow-md transition-all">
+                  <div key={idx} className={`flex items-start gap-3 p-4 rounded-xl hover:shadow-md transition-all ${
+                    finding.type === 'critical' ? 'bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-300' :
+                    finding.type === 'warning' ? 'bg-gradient-to-r from-yellow-50 to-orange-50' :
+                    'bg-gradient-to-r from-slate-50 to-purple-50'
+                  }`}>
                     {getFindingIcon(finding.type as 'critical' | 'warning' | 'info')}
-                    <span className="text-slate-700 font-medium">{finding.text}</span>
+                    <span className={`font-medium ${
+                      finding.type === 'critical' ? 'text-red-800' :
+                      finding.type === 'warning' ? 'text-orange-800' :
+                      'text-slate-700'
+                    }`}>{finding.text}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Final Recommendation */}
-            <div className="bg-gradient-to-r from-slate-900 to-purple-900 text-white rounded-2xl p-8 shadow-2xl transform hover:scale-[1.02] transition-all">
+            <div className={`rounded-2xl p-8 shadow-2xl transform hover:scale-[1.02] transition-all ${
+              result.trustScore === 0 ? 'bg-gradient-to-r from-red-900 to-rose-900' :
+              result.verdict === 'Scam' ? 'bg-gradient-to-r from-red-800 to-rose-800' :
+              'bg-gradient-to-r from-slate-900 to-purple-900'
+            } text-white`}>
               <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-yellow-400" />
-                Final Recommendation
+                {result.trustScore === 0 ? (
+                  <>
+                    <AlertTriangle className="w-8 h-8 text-red-400 animate-pulse" />
+                    🚨 CRITICAL SECURITY WARNING
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-6 h-6 text-yellow-400" />
+                    Final Recommendation
+                  </>
+                )}
               </h3>
               <p className="text-xl leading-relaxed">{result.recommendation}</p>
+              
+              {result.trustScore === 0 && (
+                <div className="mt-6 p-4 bg-red-800 rounded-lg border-2 border-red-600">
+                  <p className="font-bold text-lg">⚠️ DO NOT:</p>
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>Enter any passwords or personal information</li>
+                    <li>Download any files from this site</li>
+                    <li>Click any links on this page</li>
+                    <li>Make any payments or provide financial details</li>
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* User Comments Section */}
@@ -438,10 +491,10 @@ const LegitimacyAnalyzer: React.FC = () => {
         {!result && !analyzing && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
             {[
+              { icon: Shield, title: 'Malware Detection', desc: 'Google Safe Browsing protection against phishing & malware', color: 'from-red-500 to-rose-500' },
+              { icon: AlertTriangle, title: 'Pattern Analysis', desc: 'Detects typosquatting, suspicious TLDs, and phishing patterns', color: 'from-orange-500 to-red-500' },
               { icon: Calendar, title: 'Domain Analysis', desc: 'Check registration date and ownership history', color: 'from-blue-500 to-cyan-500' },
-              { icon: Users, title: 'Social Listening', desc: 'Analyze user reviews and complaints', color: 'from-purple-500 to-pink-500' },
-              { icon: Shield, title: 'Security Check', desc: 'SSL, server location, and safety verification', color: 'from-green-500 to-emerald-500' },
-              { icon: AlertTriangle, title: 'Scam Detection', desc: 'AI-powered pattern recognition', color: 'from-orange-500 to-red-500' }
+              { icon: Users, title: 'User Reviews', desc: 'Community-driven trust signals and scam reports', color: 'from-purple-500 to-pink-500' }
             ].map((feature, idx) => (
               <div key={idx} className={`bg-gradient-to-br ${feature.color} rounded-2xl shadow-xl p-6 text-white text-center transform hover:scale-110 hover:rotate-3 transition-all cursor-pointer`}>
                 <feature.icon className="w-16 h-16 mx-auto mb-4 animate-bounce" />
