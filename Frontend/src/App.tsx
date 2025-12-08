@@ -65,6 +65,7 @@ interface AnalysisResult {
   ponziCalculation: PonziCalculation | null;
   scamProbability: string;
   recommendation: string;
+  aiAnalysis?: string;  // Add this field
   peopleExperience?: {
     experienceScore: number;
     userExperienceRating: string;
@@ -360,6 +361,33 @@ const LegitimacyAnalyzer: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* AI Analysis Section - Prominent Display */}
+            {result.aiAnalysis && (
+              <div className="bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 rounded-2xl shadow-2xl p-8 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+                <div className="relative z-10">
+                  <h3 className="text-3xl font-bold mb-6 flex items-center gap-3">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                      <Sparkles className="w-8 h-8 text-yellow-300 animate-pulse" />
+                    </div>
+                    🤖 AI-Powered Analysis
+                    <span className="text-sm bg-yellow-400 text-purple-900 px-3 py-1 rounded-full font-bold">
+                      Powered by Groq
+                    </span>
+                  </h3>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                    <p className="text-lg leading-relaxed whitespace-pre-line">
+                      {result.aiAnalysis}
+                    </p>
+                  </div>
+                  <div className="mt-4 text-sm opacity-75 text-center">
+                    ⚡ Advanced AI analysis using Llama 3.3 70B model
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* People Discovery & Experience Section */}
             {resultAsAny.peopleExperience && (
