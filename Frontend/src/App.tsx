@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, AlertTriangle, CheckCircle, XCircle, Calendar, Shield, Users, TrendingDown, Database, Globe, Image, DollarSign, FileText, Activity, Sparkles, Zap } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle, XCircle, Calendar, Shield, Users, TrendingDown, Database, Globe, Image, DollarSign, FileText, Activity, Sparkles, Zap, Lock } from 'lucide-react';
 import CommentsSection from './CommentsSection';
+import AuthModal from './AuthModal';
 
 interface AnalysisStep {
   icon: React.ComponentType<any>;
@@ -82,6 +83,9 @@ const LegitimacyAnalyzer: React.FC = () => {
   const [analysisSteps, setAnalysisSteps] = useState<AnalysisStep[]>([]);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [hasScrolledToResults, setHasScrolledToResults] = useState(false);
   
   const API_BASE_URL = 'https://platform-analyzer-backend.onrender.com';
 
@@ -98,6 +102,73 @@ const LegitimacyAnalyzer: React.FC = () => {
     }, 4000);
     return () => clearInterval(timer);
   }, []);
+
+  // Check for existing auth
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    const savedUser = localStorage.getItem('user');
+    
+    if (token && savedUser) {
+      // Verify token is still valid
+      fetch(`${API_BASE_URL}/auth/user`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          // Token invalid, clear storage
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user');
+          throw new Error('Invalid token');
+        }
+      })
+      .then(data => {
+        setUser(data.user);
+      })
+      .catch(error => {
+        console.log('Auth verification failed:', error);
+        setUser(null);
+      });
+    }
+  }, []);
+
+  // Detect scroll to show auth modal
+  useEffect(() => {
+    if (!result || user || hasScrolledToResults) return;
+
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      const trustScoreElement = document.getElementById('trust-score-section');
+      
+      if (trustScoreElement) {
+        const elementPosition = trustScoreElement.offsetTop;
+        
+        // Show auth modal when user scrolls past trust score (trying to see detailed results)
+        if (scrollPosition > elementPosition + 400 && !user) {
+          setShowAuthModal(true);
+          setHasScrolledToResults(true);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [result, user, hasScrolledToResults]);
+
+  const handleAuthSuccess = (authUser: any) => {
+    setUser(authUser);
+    setShowAuthModal(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setResult(null);
+  };
 
   const analyzeWebsite = async () => {
     if (!url) return;
@@ -197,6 +268,24 @@ const LegitimacyAnalyzer: React.FC = () => {
             AI-Powered Scam Detection & Trust Verification
             <Zap className="w-5 h-5 text-yellow-500" />
           </p>
+          
+          {/* User Profile - Show if logged in */}
+          {user && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <div className="bg-white/80 backdrop-blur-lg rounded-full px-6 py-3 shadow-lg border border-purple-200 flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                  {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
+                </div>
+                <span className="font-semibold text-gray-700">{user.name || user.email}</span>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm text-red-600 hover:text-red-700 font-semibold ml-2"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Search Bar with Gradient */}
@@ -280,7 +369,7 @@ const LegitimacyAnalyzer: React.FC = () => {
         {result && (
           <div className="space-y-6 animate-fade-in-up">
             {/* Trust Score Card with Gradient */}
-            <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-purple-200 transform hover:scale-[1.01] transition-all">
+            <div id="trust-score-section" className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-purple-200 transform hover:scale-[1.01] transition-all">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">Trust Score</h2>
@@ -298,6 +387,28 @@ const LegitimacyAnalyzer: React.FC = () => {
                 {result.verdict}
               </div>
             </div>
+
+            {/* Auth Gate - Blur Content if Not Authenticated */}
+            <div className={!user ? 'relative' : ''}>
+              {!user && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm bg-white/30 rounded-2xl">
+                  <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md text-center border-4 border-purple-300">
+                    <Lock className="w-16 h-16 text-purple-600 mx-auto mb-4" />
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                      Sign In to View Full Analysis
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Create a free account to access detailed results, AI insights, and more!
+                    </p>
+                    <button
+                      onClick={() => setShowAuthModal(true)}
+                      className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg transform hover:scale-105"
+                    >
+                      Sign In / Sign Up
+                    </button>
+                  </div>
+                </div>
+              )}
 
             {/* Key Metrics with Colorful Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -512,8 +623,16 @@ const LegitimacyAnalyzer: React.FC = () => {
 
             {/* User Comments Section */}
             <CommentsSection url={result.url} />
+            </div>
           </div>
         )}
+
+        {/* Auth Modal */}
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onAuthSuccess={handleAuthSuccess}
+        />
 
         {/* Feature Highlights when no results */}
         {!result && !analyzing && (
