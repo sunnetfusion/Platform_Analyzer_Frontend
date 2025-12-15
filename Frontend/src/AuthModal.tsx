@@ -36,11 +36,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (isSignUp && !formData.name.trim()) {
+      setError('Please enter your name');
+      return;
+    }
+    if (!formData.email.trim()) {
+      setError('Please enter your email');
+      return;
+    }
+    if (!formData.password || formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
     try {
       const endpoint = isSignUp ? '/auth/signup' : '/auth/login';
+      
+      console.log(`Attempting ${isSignUp ? 'signup' : 'login'} for:`, formData.email);
+      
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: {
@@ -50,29 +68,37 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
       });
 
       const data = await response.json();
+      
+      console.log('Response status:', response.status);
+      console.log('Response data:', data);
 
       if (response.ok) {
-        if (data.token) {
-          // Store auth token and user
+        if (data.needs_verification) {
+          // Email verification required
+          alert('✅ Account created! Please check your email to verify your account before signing in.');
+          setIsSignUp(false); // Switch to sign in mode
+          setFormData({ name: '', email: formData.email, password: '' });
+        } else if (data.token) {
+          // Successful auth with token
           localStorage.setItem('auth_token', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
           
           onAuthSuccess(data.user);
           onClose();
           
-          // Show success message for signup
-          if (isSignUp && data.message) {
-            alert(data.message);
+          if (data.message) {
+            console.log(data.message);
           }
         } else {
-          setError('Authentication failed. Please try again.');
+          setError('Authentication completed but no token received. Please try signing in.');
         }
       } else {
-        setError(data.detail || 'Authentication failed');
+        // Error response
+        setError(data.detail || 'Authentication failed. Please try again.');
       }
     } catch (err) {
       console.error('Auth error:', err);
-      setError('Connection error. Please try again.');
+      setError('Connection error. Please check your internet and try again.');
     } finally {
       setLoading(false);
     }
