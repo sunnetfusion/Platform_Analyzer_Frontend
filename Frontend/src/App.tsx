@@ -636,14 +636,14 @@ const LegitimacyAnalyzer: React.FC = () => {
 
         {/* Feature Highlights when no results */}
         {!result && !analyzing && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-8">
             {[
               { icon: Shield, title: 'Malware Detection', desc: 'Google Safe Browsing protection against phishing & malware', color: 'from-red-500 to-rose-500' },
               { icon: AlertTriangle, title: 'Pattern Analysis', desc: 'Detects typosquatting, suspicious TLDs, and phishing patterns', color: 'from-orange-500 to-red-500' },
               { icon: Calendar, title: 'Domain Analysis', desc: 'Check registration date and ownership history', color: 'from-blue-500 to-cyan-500' },
               { icon: Users, title: 'User Reviews', desc: 'Community-driven trust signals and scam reports', color: 'from-purple-500 to-pink-500' }
             ].map((feature, idx) => (
-              <div key={idx} className={`bg-gradient-to-br ${feature.color} rounded-2xl shadow-xl p-6 text-white text-center transform hover:scale-110 hover:rotate-3 transition-all cursor-pointer`}>
+              <div key={idx} className={`bg-gradient-to-br ${feature.color} rounded-2xl shadow-xl p-6 text-white text-center transform hover:scale-105 hover:rotate-1 transition-all cursor-pointer`}>
                 <feature.icon className="w-16 h-16 mx-auto mb-4 animate-bounce" />
                 <h3 className="font-bold text-xl mb-2">{feature.title}</h3>
                 <p className="text-sm opacity-90">{feature.desc}</p>
