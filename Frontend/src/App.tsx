@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Globe, Briefcase, Shield, Menu, X } from 'lucide-react';
 import LegitimacyAnalyzer from './LegitimacyAnalyzer.tsx';
-import JobAnalyzer from './JobAnalyzer';
+import JobAnalyzer from './JobAnalyzer.tsx';
 
 type ServiceType = 'website' | 'job';
 
 const App: React.FC = () => {
   const [activeService, setActiveService] = useState<ServiceType>('website');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  
   const services = [
     {
       id: 'website' as ServiceType,
@@ -34,14 +34,14 @@ const App: React.FC = () => {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="relative">
+            <div className="relative">
                 <Shield className="w-10 h-10 text-indigo-600" />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              </div>
+            </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                   Platform Analyzer
-                </h1>
+            </h1>
                 <p className="text-xs text-gray-500 font-medium">AI-Powered Scam Detection</p>
               </div>
             </div>
@@ -80,8 +80,8 @@ const App: React.FC = () => {
                 <Menu className="w-6 h-6 text-gray-700" />
               )}
             </button>
-          </div>
-
+              </div>
+              
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
             <div className="md:hidden pb-4 animate-slide-down">
@@ -114,7 +114,7 @@ const App: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
+                  </div>
       </header>
 
       {/* Service Cards (visible when no service selected - for better UX) */}
@@ -126,8 +126,8 @@ const App: React.FC = () => {
             </h2>
             <p className="text-xl text-gray-600">
               Select a service to start analyzing
-            </p>
-          </div>
+                    </p>
+                  </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {services.map((service) => {
@@ -148,9 +148,9 @@ const App: React.FC = () => {
                 </button>
               );
             })}
-          </div>
-        </div>
-      )}
+                </div>
+              </div>
+            )}
 
       {/* Active Service Content */}
       <main>
@@ -166,11 +166,11 @@ const App: React.FC = () => {
               <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
                 <Shield className="w-5 h-5" />
                 Platform Analyzer
-              </h3>
+                </h3>
               <p className="text-sm text-gray-300">
                 AI-powered scam detection to protect you from online fraud.
-              </p>
-            </div>
+                    </p>
+                  </div>
             
             <div>
               <h3 className="text-lg font-bold mb-3">Services</h3>
@@ -180,7 +180,7 @@ const App: React.FC = () => {
                 <li>• Email Domain Analysis</li>
                 <li>• Red Flag Detection</li>
               </ul>
-            </div>
+                      </div>
             
             <div>
               <h3 className="text-lg font-bold mb-3">Stats</h3>
@@ -188,7 +188,7 @@ const App: React.FC = () => {
                 <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2">
                   <span>Websites Analyzed</span>
                   <span className="font-bold text-green-400">10,000+</span>
-                </div>
+                      </div>
                 <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2">
                   <span>Jobs Verified</span>
                   <span className="font-bold text-blue-400">5,000+</span>
@@ -204,7 +204,7 @@ const App: React.FC = () => {
           <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400">
             <p>© 2024 Platform Analyzer. Built with AI to keep you safe online.</p>
           </div>
-        </div>
+      </div>
       </footer>
 
       <style>{`
