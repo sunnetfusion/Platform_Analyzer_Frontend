@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Globe, Briefcase, Shield, Menu, X } from 'lucide-react';
 import LegitimacyAnalyzer from './LegitimacyAnalyzer.tsx';
 import JobAnalyzer from './JobAnalyzer.tsx';
+import DynamicStats from './DynamicStats.tsx';
 
 type ServiceType = 'website' | 'job';
 
@@ -157,6 +158,9 @@ const App: React.FC = () => {
         {activeService === 'website' && <LegitimacyAnalyzer />}
         {activeService === 'job' && <JobAnalyzer />}
       </main>
+
+      {/* Global dynamic stats & testimonials */}
+      <DynamicStats />
 
       {/* Footer */}
       <footer className="bg-gradient-to-r from-slate-800 to-slate-900 text-white py-8 mt-16">
