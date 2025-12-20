@@ -308,7 +308,7 @@ const App: React.FC = () => {
           </div>
           
           <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400">
-            <p>© 2024 Platform Analyzer. Built with AI to keep you safe online.</p>
+            <p>© 2025 Platform Analyzer. Built with AI to keep you safe online.</p>
           </div>
         </div>
       </footer>
