@@ -4,6 +4,12 @@ import { Search, AlertTriangle, CheckCircle, XCircle, Calendar, Shield, Users, T
 import CommentsSection from './CommentsSection';
 import AuthModal from './AuthModal';
 
+interface LegitimacyAnalyzerProps {
+  sharedUser?: any;
+  onAuthSuccess?: (user: any) => void;
+  onLogout?: () => void;
+}
+
 interface AnalysisStep {
   icon: React.ComponentType<any>;
   label: string;
@@ -77,7 +83,11 @@ interface AnalysisResult {
   };
 }
 
-const LegitimacyAnalyzer: React.FC = () => {
+const LegitimacyAnalyzer: React.FC<LegitimacyAnalyzerProps> = ({ 
+  sharedUser, 
+  onAuthSuccess, 
+  onLogout: propOnLogout 
+}) => {
   const [url, setUrl] = useState<string>('');
   const [analyzing, setAnalyzing] = useState<boolean>(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -85,7 +95,7 @@ const LegitimacyAnalyzer: React.FC = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(sharedUser || null);
   const [hasScrolledToResults, setHasScrolledToResults] = useState(false);
   
   const API_BASE_URL = 'https://platform-analyzer-backend.onrender.com';
@@ -105,6 +115,11 @@ const LegitimacyAnalyzer: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (sharedUser) {
+      setUser(sharedUser);
+      return;
+    }
+
     const token = localStorage.getItem('auth_token');
     const savedUser = localStorage.getItem('user');
     
@@ -131,7 +146,7 @@ const LegitimacyAnalyzer: React.FC = () => {
         setUser(null);
       });
     }
-  }, []);
+  }, [sharedUser]);
 
   useEffect(() => {
     if (!result || user || hasScrolledToResults) return;
@@ -157,6 +172,9 @@ const LegitimacyAnalyzer: React.FC = () => {
   const handleAuthSuccess = (authUser: any) => {
     setUser(authUser);
     setShowAuthModal(false);
+    if (onAuthSuccess) {
+      onAuthSuccess(authUser);
+    }
   };
 
   const handleLogout = () => {
@@ -164,6 +182,9 @@ const LegitimacyAnalyzer: React.FC = () => {
     localStorage.removeItem('user');
     setUser(null);
     setResult(null);
+    if (propOnLogout) {
+      propOnLogout();
+    }
   };
 
   const analyzeWebsite = async () => {
