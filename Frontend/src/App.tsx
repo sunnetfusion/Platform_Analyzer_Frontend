@@ -293,15 +293,15 @@ const App: React.FC = () => {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2">
                   <span>Websites Analyzed</span>
-                  <span className="font-bold text-green-400">10,000+</span>
+                  <span className="font-bold text-green-400">8+</span>
                 </div>
                 <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2">
                   <span>Jobs Verified</span>
-                  <span className="font-bold text-blue-400">5,000+</span>
+                  <span className="font-bold text-blue-400">5+</span>
                 </div>
                 <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2">
                   <span>Scams Detected</span>
-                  <span className="font-bold text-red-400">2,500+</span>
+                  <span className="font-bold text-red-400">11+</span>
                 </div>
               </div>
             </div>
