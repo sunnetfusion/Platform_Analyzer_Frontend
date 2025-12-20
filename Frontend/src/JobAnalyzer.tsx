@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Search, AlertTriangle, CheckCircle, XCircle, Briefcase, Mail, DollarSign, Building, Link as LinkIcon, Shield, FileText, Activity, Sparkles, TrendingUp } from 'lucide-react';
+// filepath: /Users/mac/Desktop/Platform Analyzer_Frontend/Frontend/src/JobAnalyzer.tsx
+import React, { useState, useEffect } from 'react';
+import { Search, AlertTriangle, CheckCircle, XCircle, Briefcase, Mail, DollarSign, Building, Link as LinkIcon, Shield, FileText, Activity, Sparkles, TrendingUp, LogOut } from 'lucide-react';
 
 interface Finding {
   type: 'critical' | 'warning' | 'info';
@@ -50,7 +51,17 @@ interface JobAnalysisResult {
   criticalFlags: number;
 }
 
+interface User {
+  id: string;
+  email: string;
+  name: string;
+}
+
 const JobAnalyzer: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
   const [formData, setFormData] = useState({
     job_url: '',
     job_description: '',
@@ -65,7 +76,46 @@ const JobAnalyzer: React.FC = () => {
 
   const API_BASE_URL = 'https://platform-analyzer-backend.onrender.com';
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          const response = await fetch(`${API_BASE_URL}/api/auth/verify`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+            setIsAuthenticated(true);
+          } else {
+            localStorage.removeItem('authToken');
+            setIsAuthenticated(false);
+          }
+        }
+      } catch (err) {
+        console.error('Auth check failed:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    setUser(null);
+    setIsAuthenticated(false);
+    setResult(null);
+    setFormData({ job_url: '', job_description: '', company_name: '', salary: '', recruiter_email: '' });
+  };
+
   const analyzeJob = async () => {
+    if (!isAuthenticated) {
+      setError('Please log in to analyze job postings');
+      return;
+    }
+
     if (!formData.job_url && !formData.job_description) {
       setError('Please provide either a job URL or job description');
       return;
@@ -85,7 +135,6 @@ const JobAnalyzer: React.FC = () => {
       'Calculating trust score...'
     ];
 
-    // Show analysis steps progressively
     steps.forEach((step, index) => {
       setTimeout(() => {
         setAnalysisSteps(prev => [...prev, step]);
@@ -93,24 +142,27 @@ const JobAnalyzer: React.FC = () => {
     });
 
     try {
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`${API_BASE_URL}/api/analyze-job`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          handleLogout();
+          throw new Error('Session expired. Please log in again.');
+        }
         const errorData = await response.json().catch(() => ({ detail: 'Unknown error occurred' }));
         throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
       }
 
       const data: JobAnalysisResult = await response.json();
-      
-      // Wait for all steps to show
       await new Promise(resolve => setTimeout(resolve, steps.length * 500 + 500));
-      
       setResult(data);
       setAnalyzing(false);
     } catch (err) {
@@ -146,20 +198,65 @@ const JobAnalyzer: React.FC = () => {
     return 'bg-gray-100 text-gray-800 border-gray-300';
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-indigo-300 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-indigo-600 font-semibold">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+        <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 max-w-md w-full border border-white/20">
+          <div className="text-center mb-8">
+            <Briefcase className="w-16 h-16 text-indigo-600 mx-auto mb-4" />
+            <h1 className="text-3xl font-bold text-indigo-600">Job Analyzer</h1>
+            <p className="text-slate-600 mt-2">Please log in to continue</p>
+          </div>
+          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 text-center">
+            <p className="text-yellow-800 font-semibold">Authentication Required</p>
+            <p className="text-yellow-700 text-sm mt-2">You must be logged in to use the Job Analyzer. Please navigate to the login page.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8 animate-fade-in-down">
-          <div className="flex items-center justify-center gap-3 mb-4">
+        {/* Header with User Info */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
             <div className="relative">
               <Briefcase className="w-16 h-16 text-indigo-600 animate-pulse" />
               <Sparkles className="w-6 h-6 text-yellow-400 absolute -top-1 -right-1 animate-bounce" />
             </div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               Job Offer Analyzer
             </h1>
           </div>
+          <div className="flex items-center gap-4 bg-white/80 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+            <div className="text-right">
+              <p className="text-sm text-slate-600">Logged in as</p>
+              <p className="font-semibold text-slate-900">{user?.email}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-all"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <div className="text-center mb-8">
           <p className="text-slate-700 text-xl font-medium">
             🔍 Detect Fake Jobs, Scams & Fraudulent Recruiters
           </p>
@@ -168,7 +265,6 @@ const JobAnalyzer: React.FC = () => {
         {/* Input Form */}
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-6 mb-8 border border-white/20">
           <div className="space-y-4">
-            {/* Job URL */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <LinkIcon className="w-4 h-4" />
@@ -183,7 +279,6 @@ const JobAnalyzer: React.FC = () => {
               />
             </div>
 
-            {/* Job Description */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <FileText className="w-4 h-4" />
@@ -198,7 +293,6 @@ const JobAnalyzer: React.FC = () => {
               />
             </div>
 
-            {/* Company Name */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -214,7 +308,6 @@ const JobAnalyzer: React.FC = () => {
                 />
               </div>
 
-              {/* Salary */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   <DollarSign className="w-4 h-4" />
@@ -230,7 +323,6 @@ const JobAnalyzer: React.FC = () => {
               </div>
             </div>
 
-            {/* Recruiter Email */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <Mail className="w-4 h-4" />
@@ -245,7 +337,6 @@ const JobAnalyzer: React.FC = () => {
               />
             </div>
 
-            {/* Analyze Button */}
             <button
               onClick={analyzeJob}
               disabled={analyzing || (!formData.job_url && !formData.job_description)}
@@ -304,7 +395,6 @@ const JobAnalyzer: React.FC = () => {
         {/* Results */}
         {result && (
           <div className="space-y-6 animate-fade-in-up">
-            {/* Trust Score Card */}
             <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-indigo-200">
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -332,7 +422,6 @@ const JobAnalyzer: React.FC = () => {
               </div>
             </div>
 
-            {/* Critical Warning Banner */}
             {result.criticalFlags > 0 && (
               <div className="bg-gradient-to-r from-red-600 to-rose-700 text-white rounded-2xl p-6 border-4 border-red-800 animate-pulse">
                 <div className="flex items-center gap-4">
@@ -345,9 +434,7 @@ const JobAnalyzer: React.FC = () => {
               </div>
             )}
 
-            {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Email Analysis */}
               <div className={`bg-gradient-to-br ${result.emailAnalysis.isCorporate ? 'from-green-500 to-emerald-500' : 'from-red-500 to-rose-500'} rounded-2xl shadow-xl p-6 text-white`}>
                 <Mail className="w-8 h-8 mb-3" />
                 <h3 className="font-bold text-lg mb-2">Recruiter Email</h3>
@@ -358,7 +445,6 @@ const JobAnalyzer: React.FC = () => {
                 </div>
               </div>
 
-              {/* Platform */}
               <div className={`bg-gradient-to-br ${result.platformAnalysis.isLegitimate ? 'from-blue-500 to-cyan-500' : 'from-orange-500 to-red-500'} rounded-2xl shadow-xl p-6 text-white`}>
                 <LinkIcon className="w-8 h-8 mb-3" />
                 <h3 className="font-bold text-lg mb-2">Job Platform</h3>
@@ -366,7 +452,6 @@ const JobAnalyzer: React.FC = () => {
                 <p className="text-xs opacity-90">Trust: {result.platformAnalysis.trustLevel}</p>
               </div>
 
-              {/* Salary */}
               <div className={`bg-gradient-to-br ${result.salaryAnalysis.isReasonable ? 'from-green-500 to-emerald-500' : 'from-yellow-500 to-orange-500'} rounded-2xl shadow-xl p-6 text-white`}>
                 <DollarSign className="w-8 h-8 mb-3" />
                 <h3 className="font-bold text-lg mb-2">Salary Check</h3>
@@ -376,18 +461,14 @@ const JobAnalyzer: React.FC = () => {
                 </div>
               </div>
 
-              {/* Red Flags */}
               <div className={`bg-gradient-to-br ${result.totalRedFlags === 0 ? 'from-green-500 to-emerald-500' : 'from-red-500 to-rose-500'} rounded-2xl shadow-xl p-6 text-white`}>
                 <AlertTriangle className="w-8 h-8 mb-3" />
                 <h3 className="font-bold text-lg mb-2">Red Flags</h3>
                 <p className="text-4xl font-bold">{result.totalRedFlags}</p>
-                <p className="text-xs opacity-90 mt-1">
-                  {result.criticalFlags} Critical
-                </p>
+                <p className="text-xs opacity-90 mt-1">{result.criticalFlags} Critical</p>
               </div>
             </div>
 
-            {/* Detailed Red Flags */}
             {result.redFlags.length > 0 && (
               <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-red-200">
                 <h3 className="text-2xl font-bold text-red-800 mb-4 flex items-center gap-2">
@@ -424,7 +505,6 @@ const JobAnalyzer: React.FC = () => {
               </div>
             )}
 
-            {/* AI Analysis Section - Prominent Display */}
             {result.aiAnalysis && (
               <div className="bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 rounded-2xl shadow-2xl p-8 text-white relative overflow-hidden animate-fade-in-up">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
@@ -451,7 +531,6 @@ const JobAnalyzer: React.FC = () => {
               </div>
             )}
 
-            {/* Key Findings */}
             <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-indigo-200">
               <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
                 Analysis Findings
@@ -476,7 +555,6 @@ const JobAnalyzer: React.FC = () => {
               </div>
             </div>
 
-            {/* Company Verification */}
             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-2xl p-8 text-white">
               <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
                 <Building className="w-6 h-6" />
@@ -494,7 +572,6 @@ const JobAnalyzer: React.FC = () => {
               </div>
             </div>
 
-            {/* Final Recommendation */}
             <div className={`rounded-2xl p-8 shadow-2xl text-white ${
               result.trustScore >= 70 ? 'bg-gradient-to-r from-green-700 to-emerald-700' :
               result.trustScore >= 40 ? 'bg-gradient-to-r from-yellow-700 to-orange-700' :
@@ -521,7 +598,6 @@ const JobAnalyzer: React.FC = () => {
           </div>
         )}
 
-        {/* Feature Highlights */}
         {!result && !analyzing && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
             {[
