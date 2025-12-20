@@ -1,4 +1,3 @@
-// src/LegitimacyAnalyzer.tsx
 import React, { useState, useEffect } from 'react';
 import { Search, AlertTriangle, CheckCircle, XCircle, Calendar, Shield, Users, TrendingDown, Database, Globe, Image, DollarSign, FileText, Activity, Sparkles, Zap, Lock } from 'lucide-react';
 import CommentsSection from './CommentsSection';
@@ -107,6 +106,7 @@ const LegitimacyAnalyzer: React.FC<LegitimacyAnalyzerProps> = ({
     { text: "Caught red flags I completely missed. This platform is a lifesaver!", author: "David K.", rating: 5 }
   ];
 
+  // Rotate testimonials
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
@@ -114,40 +114,14 @@ const LegitimacyAnalyzer: React.FC<LegitimacyAnalyzerProps> = ({
     return () => clearInterval(timer);
   }, []);
 
+  // Sync with shared user prop
   useEffect(() => {
     if (sharedUser) {
       setUser(sharedUser);
-      return;
-    }
-
-    const token = localStorage.getItem('auth_token');
-    const savedUser = localStorage.getItem('user');
-    
-    if (token && savedUser) {
-      fetch(`${API_BASE_URL}/auth/user`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user');
-          throw new Error('Invalid token');
-        }
-      })
-      .then(data => {
-        setUser(data.user);
-      })
-      .catch(error => {
-        console.log('Auth verification failed:', error);
-        setUser(null);
-      });
     }
   }, [sharedUser]);
 
+  // Handle scroll to show auth modal
   useEffect(() => {
     if (!result || user || hasScrolledToResults) return;
 
@@ -268,6 +242,7 @@ const LegitimacyAnalyzer: React.FC<LegitimacyAnalyzerProps> = ({
       <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
       
       <div className="max-w-6xl mx-auto relative z-10">
+        {/* Header */}
         <div className="text-center mb-8 animate-fade-in-down">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="relative">
@@ -283,25 +258,9 @@ const LegitimacyAnalyzer: React.FC<LegitimacyAnalyzerProps> = ({
             AI-Powered Scam Detection & Trust Verification
             <Zap className="w-5 h-5 text-yellow-500" />
           </p>
-          
-          {user && (
-            <div className="mt-4 flex items-center justify-center gap-3">
-              <div className="bg-white/80 backdrop-blur-lg rounded-full px-6 py-3 shadow-lg border border-purple-200 flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                  {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
-                </div>
-                <span className="font-semibold text-gray-700">{user.name || user.email}</span>
-                <button
-                  onClick={handleLogout}
-                  className="text-sm text-red-600 hover:text-red-700 font-semibold ml-2"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
+        {/* Search Input */}
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-6 mb-8 border border-white/20 transform hover:scale-[1.02] transition-all duration-300">
           <div className="flex gap-3">
             <div className="flex-1 relative">
@@ -337,6 +296,7 @@ const LegitimacyAnalyzer: React.FC<LegitimacyAnalyzerProps> = ({
           </div>
         </div>
 
+        {/* Error Display */}
         {error && (
           <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 mb-8 animate-fade-in-up">
             <div className="flex items-start gap-3">
@@ -358,6 +318,7 @@ const LegitimacyAnalyzer: React.FC<LegitimacyAnalyzerProps> = ({
           </div>
         )}
 
+        {/* Analysis Steps */}
         {analyzing && analysisSteps.length > 0 && (
           <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 mb-8 border border-purple-200">
             <h3 className="text-xl font-bold text-purple-900 mb-4 flex items-center gap-2">
@@ -376,8 +337,10 @@ const LegitimacyAnalyzer: React.FC<LegitimacyAnalyzerProps> = ({
           </div>
         )}
 
+        {/* Results Section */}
         {result && (
           <div className="space-y-6 animate-fade-in-up">
+            {/* Trust Score Card */}
             <div id="trust-score-section" className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-purple-200 transform hover:scale-[1.01] transition-all">
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -397,6 +360,7 @@ const LegitimacyAnalyzer: React.FC<LegitimacyAnalyzerProps> = ({
               </div>
             </div>
 
+            {/* Auth Overlay Container */}
             <div className={!user ? 'relative' : ''}>
               {!user && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm bg-white/30 rounded-2xl">
@@ -418,221 +382,230 @@ const LegitimacyAnalyzer: React.FC<LegitimacyAnalyzerProps> = ({
                 </div>
               )}
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
-                <Calendar className="w-8 h-8 mb-3 animate-bounce" />
-                <h3 className="font-bold text-lg mb-2">Domain Age</h3>
-                <p className="text-3xl font-bold">{result.domainAge}</p>
-                <p className="text-sm opacity-90 mt-1">Registered: {result.domainRegistered}</p>
+              {/* Metrics Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
+                  <Calendar className="w-8 h-8 mb-3 animate-bounce" />
+                  <h3 className="font-bold text-lg mb-2">Domain Age</h3>
+                  <p className="text-3xl font-bold">{result.domainAge}</p>
+                  <p className="text-sm opacity-90 mt-1">Registered: {result.domainRegistered}</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
+                  <Shield className="w-8 h-8 mb-3 animate-pulse" />
+                  <h3 className="font-bold text-lg mb-2">Security</h3>
+                  <p className="text-sm font-medium">{result.sslStatus}</p>
+                  <p className="text-sm opacity-90 mt-1">Server: {result.serverLocation}</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
+                  <Shield className="w-8 h-8 mb-3 animate-pulse" />
+                  <h3 className="font-bold text-lg mb-2">Threat Status</h3>
+                  <p className="text-2xl font-bold">
+                    {result.scamProbability === "CRITICAL - 100%" ? "🚨 DANGER" : 
+                     result.trustScore >= 70 ? "✅ Clean" : 
+                     result.trustScore >= 40 ? "⚠️ Caution" : "🔴 High Risk"}
+                  </p>
+                  <p className="text-sm opacity-90 mt-1">Malware Scan Complete</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
+                  <TrendingDown className="w-8 h-8 mb-3 animate-pulse" />
+                  <h3 className="font-bold text-lg mb-2">Risk Level</h3>
+                  <p className="text-3xl font-bold">{result.scamProbability}</p>
+                </div>
               </div>
 
-              <div className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
-                <Shield className="w-8 h-8 mb-3 animate-pulse" />
-                <h3 className="font-bold text-lg mb-2">Security</h3>
-                <p className="text-sm font-medium">{result.sslStatus}</p>
-                <p className="text-sm opacity-90 mt-1">Server: {result.serverLocation}</p>
-              </div>
-
-              <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
-                <Shield className="w-8 h-8 mb-3 animate-pulse" />
-                <h3 className="font-bold text-lg mb-2">Threat Status</h3>
-                <p className="text-2xl font-bold">
-                  {result.scamProbability === "CRITICAL - 100%" ? "🚨 DANGER" : 
-                   result.trustScore >= 70 ? "✅ Clean" : 
-                   result.trustScore >= 40 ? "⚠️ Caution" : "🔴 High Risk"}
-                </p>
-                <p className="text-sm opacity-90 mt-1">Malware Scan Complete</p>
-              </div>
-
-              <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 hover:rotate-1 transition-all">
-                <TrendingDown className="w-8 h-8 mb-3 animate-pulse" />
-                <h3 className="font-bold text-lg mb-2">Risk Level</h3>
-                <p className="text-3xl font-bold">{result.scamProbability}</p>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-2xl p-8 text-white relative overflow-hidden">
-              <div className="absolute inset-0 bg-black/10"></div>
-              <div className="relative z-10">
-                <h3 className="text-2xl font-bold mb-6 text-center flex items-center justify-center gap-2">
-                  <Sparkles className="w-6 h-6" />
-                  What Our Users Say
-                  <Sparkles className="w-6 h-6" />
-                </h3>
-                <div className="transition-all duration-500 transform">
-                  <p className="text-xl italic mb-4 text-center">"{testimonials[currentTestimonial].text}"</p>
-                  <p className="text-center font-semibold">— {testimonials[currentTestimonial].author}</p>
-                  <div className="flex justify-center gap-1 mt-3">
-                    {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                      <span key={i} className="text-yellow-300 text-2xl">★</span>
+              {/* Testimonials */}
+              <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-2xl p-8 text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="relative z-10">
+                  <h3 className="text-2xl font-bold mb-6 text-center flex items-center justify-center gap-2">
+                    <Sparkles className="w-6 h-6" />
+                    What Our Users Say
+                    <Sparkles className="w-6 h-6" />
+                  </h3>
+                  <div className="transition-all duration-500 transform">
+                    <p className="text-xl italic mb-4 text-center">"{testimonials[currentTestimonial].text}"</p>
+                    <p className="text-center font-semibold">— {testimonials[currentTestimonial].author}</p>
+                    <div className="flex justify-center gap-1 mt-3">
+                      {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
+                        <span key={i} className="text-yellow-300 text-2xl">★</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex justify-center gap-2 mt-6">
+                    {testimonials.map((_, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-3 h-3 rounded-full transition-all ${idx === currentTestimonial ? 'bg-white w-8' : 'bg-white/50'}`}
+                      />
                     ))}
                   </div>
                 </div>
-                <div className="flex justify-center gap-2 mt-6">
-                  {testimonials.map((_, idx) => (
-                    <div
-                      key={idx}
-                      className={`w-3 h-3 rounded-full transition-all ${idx === currentTestimonial ? 'bg-white w-8' : 'bg-white/50'}`}
-                    />
+              </div>
+
+              {/* AI Analysis */}
+              {result.aiAnalysis && (
+                <div className="bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 rounded-2xl shadow-2xl p-8 text-white relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+                  <div className="relative z-10">
+                    <h3 className="text-3xl font-bold mb-6 flex items-center gap-3">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                        <Sparkles className="w-8 h-8 text-yellow-300 animate-pulse" />
+                      </div>
+                      🤖 AI-Powered Analysis
+                      <span className="text-sm bg-yellow-400 text-purple-900 px-3 py-1 rounded-full font-bold">
+                        Powered by Groq
+                      </span>
+                    </h3>
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                      <p className="text-lg leading-relaxed whitespace-pre-line">
+                        {result.aiAnalysis}
+                      </p>
+                    </div>
+                    <div className="mt-4 text-sm opacity-75 text-center">
+                      ⚡ Advanced AI analysis using Llama 3.3 70B model
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* People Experience */}
+              {resultAsAny.peopleExperience && (
+                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-2xl p-8 text-white">
+                  <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                    <Users className="w-6 h-6" />
+                    People Discovery & Experience Analysis
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                      <h4 className="font-bold text-lg mb-4">User Experience Rating</h4>
+                      <div className="text-4xl font-bold mb-2">
+                        {resultAsAny.peopleExperience.experienceScore || 50}/100
+                      </div>
+                      <p className="text-sm opacity-90">
+                        Rating: {resultAsAny.peopleExperience.userExperienceRating || 'Fair'}
+                      </p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                      <h4 className="font-bold text-lg mb-4">Experience Indicators</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          {resultAsAny.peopleExperience.hasTestimonials ? (
+                            <CheckCircle className="w-5 h-5 text-green-300" />
+                          ) : (
+                            <XCircle className="w-5 h-5 text-red-300" />
+                          )}
+                          <span>User Testimonials Found</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {resultAsAny.peopleExperience.hasSocialProof ? (
+                            <CheckCircle className="w-5 h-5 text-green-300" />
+                          ) : (
+                            <XCircle className="w-5 h-5 text-red-300" />
+                          )}
+                          <span>Social Proof Indicators</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {resultAsAny.peopleExperience.hasSupport ? (
+                            <CheckCircle className="w-5 h-5 text-green-300" />
+                          ) : (
+                            <XCircle className="w-5 h-5 text-red-300" />
+                          )}
+                          <span>Customer Support Available</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Findings */}
+              <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-purple-200">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+                  Security Analysis & Key Findings
+                </h3>
+                
+                {result.trustScore === 0 && (
+                  <div className="mb-6 bg-gradient-to-r from-red-600 to-rose-700 text-white rounded-xl p-6 border-4 border-red-800 animate-pulse">
+                    <div className="flex items-center gap-4">
+                      <div className="text-6xl">🚨</div>
+                      <div>
+                        <h4 className="text-2xl font-bold mb-2">CRITICAL SECURITY THREAT DETECTED</h4>
+                        <p className="text-lg">This website has been flagged as malicious. Close this page immediately!</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-3">
+                  {result.findings.map((finding, idx) => (
+                    <div key={idx} className={`flex items-start gap-3 p-4 rounded-xl hover:shadow-md transition-all ${
+                      finding.type === 'critical' ? 'bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-300' :
+                      finding.type === 'warning' ? 'bg-gradient-to-r from-yellow-50 to-orange-50' :
+                      'bg-gradient-to-r from-slate-50 to-purple-50'
+                    }`}>
+                      {getFindingIcon(finding.type as 'critical' | 'warning' | 'info')}
+                      <span className={`font-medium ${
+                        finding.type === 'critical' ? 'text-red-800' :
+                        finding.type === 'warning' ? 'text-orange-800' :
+                        'text-slate-700'
+                      }`}>{finding.text}</span>
+                    </div>
                   ))}
                 </div>
               </div>
-            </div>
 
-            {result.aiAnalysis && (
-              <div className="bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 rounded-2xl shadow-2xl p-8 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
-                <div className="relative z-10">
-                  <h3 className="text-3xl font-bold mb-6 flex items-center gap-3">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
-                      <Sparkles className="w-8 h-8 text-yellow-300 animate-pulse" />
-                    </div>
-                    🤖 AI-Powered Analysis
-                    <span className="text-sm bg-yellow-400 text-purple-900 px-3 py-1 rounded-full font-bold">
-                      Powered by Groq
-                    </span>
-                  </h3>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                    <p className="text-lg leading-relaxed whitespace-pre-line">
-                      {result.aiAnalysis}
-                    </p>
-                  </div>
-                  <div className="mt-4 text-sm opacity-75 text-center">
-                    ⚡ Advanced AI analysis using Llama 3.3 70B model
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {resultAsAny.peopleExperience && (
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-2xl p-8 text-white">
-                <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                  <Users className="w-6 h-6" />
-                  People Discovery & Experience Analysis
+              {/* Final Recommendation */}
+              <div className={`rounded-2xl p-8 shadow-2xl transform hover:scale-[1.02] transition-all ${
+                result.trustScore === 0 ? 'bg-gradient-to-r from-red-900 to-rose-900' :
+                result.verdict === 'Scam' ? 'bg-gradient-to-r from-red-800 to-rose-800' :
+                'bg-gradient-to-r from-slate-900 to-purple-900'
+              } text-white`}>
+                <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                  {result.trustScore === 0 ? (
+                    <>
+                      <AlertTriangle className="w-8 h-8 text-red-400 animate-pulse" />
+                      🚨 CRITICAL SECURITY WARNING
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-6 h-6 text-yellow-400" />
+                      Final Recommendation
+                    </>
+                  )}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                    <h4 className="font-bold text-lg mb-4">User Experience Rating</h4>
-                    <div className="text-4xl font-bold mb-2">
-                      {resultAsAny.peopleExperience.experienceScore || 50}/100
-                    </div>
-                    <p className="text-sm opacity-90">
-                      Rating: {resultAsAny.peopleExperience.userExperienceRating || 'Fair'}
-                    </p>
+                <p className="text-xl leading-relaxed">{result.recommendation}</p>
+                
+                {result.trustScore === 0 && (
+                  <div className="mt-6 p-4 bg-red-800 rounded-lg border-2 border-red-600">
+                    <p className="font-bold text-lg">⚠️ DO NOT:</p>
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                      <li>Enter any passwords or personal information</li>
+                      <li>Download any files from this site</li>
+                      <li>Click any links on this page</li>
+                      <li>Make any payments or provide financial details</li>
+                    </ul>
                   </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                    <h4 className="font-bold text-lg mb-4">Experience Indicators</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        {resultAsAny.peopleExperience.hasTestimonials ? (
-                          <CheckCircle className="w-5 h-5 text-green-300" />
-                        ) : (
-                          <XCircle className="w-5 h-5 text-red-300" />
-                        )}
-                        <span>User Testimonials Found</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {resultAsAny.peopleExperience.hasSocialProof ? (
-                          <CheckCircle className="w-5 h-5 text-green-300" />
-                        ) : (
-                          <XCircle className="w-5 h-5 text-red-300" />
-                        )}
-                        <span>Social Proof Indicators</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {resultAsAny.peopleExperience.hasSupport ? (
-                          <CheckCircle className="w-5 h-5 text-green-300" />
-                        ) : (
-                          <XCircle className="w-5 h-5 text-red-300" />
-                        )}
-                        <span>Customer Support Available</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-purple-200">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-                Security Analysis & Key Findings
-              </h3>
-              
-              {result.trustScore === 0 && (
-                <div className="mb-6 bg-gradient-to-r from-red-600 to-rose-700 text-white rounded-xl p-6 border-4 border-red-800 animate-pulse">
-                  <div className="flex items-center gap-4">
-                    <div className="text-6xl">🚨</div>
-                    <div>
-                      <h4 className="text-2xl font-bold mb-2">CRITICAL SECURITY THREAT DETECTED</h4>
-                      <p className="text-lg">This website has been flagged as malicious. Close this page immediately!</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div className="space-y-3">
-                {result.findings.map((finding, idx) => (
-                  <div key={idx} className={`flex items-start gap-3 p-4 rounded-xl hover:shadow-md transition-all ${
-                    finding.type === 'critical' ? 'bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-300' :
-                    finding.type === 'warning' ? 'bg-gradient-to-r from-yellow-50 to-orange-50' :
-                    'bg-gradient-to-r from-slate-50 to-purple-50'
-                  }`}>
-                    {getFindingIcon(finding.type as 'critical' | 'warning' | 'info')}
-                    <span className={`font-medium ${
-                      finding.type === 'critical' ? 'text-red-800' :
-                      finding.type === 'warning' ? 'text-orange-800' :
-                      'text-slate-700'
-                    }`}>{finding.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className={`rounded-2xl p-8 shadow-2xl transform hover:scale-[1.02] transition-all ${
-              result.trustScore === 0 ? 'bg-gradient-to-r from-red-900 to-rose-900' :
-              result.verdict === 'Scam' ? 'bg-gradient-to-r from-red-800 to-rose-800' :
-              'bg-gradient-to-r from-slate-900 to-purple-900'
-            } text-white`}>
-              <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                {result.trustScore === 0 ? (
-                  <>
-                    <AlertTriangle className="w-8 h-8 text-red-400 animate-pulse" />
-                    🚨 CRITICAL SECURITY WARNING
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-6 h-6 text-yellow-400" />
-                    Final Recommendation
-                  </>
                 )}
-              </h3>
-              <p className="text-xl leading-relaxed">{result.recommendation}</p>
-              
-              {result.trustScore === 0 && (
-                <div className="mt-6 p-4 bg-red-800 rounded-lg border-2 border-red-600">
-                  <p className="font-bold text-lg">⚠️ DO NOT:</p>
-                  <ul className="list-disc list-inside mt-2 space-y-1">
-                    <li>Enter any passwords or personal information</li>
-                    <li>Download any files from this site</li>
-                    <li>Click any links on this page</li>
-                    <li>Make any payments or provide financial details</li>
-                  </ul>
-                </div>
-              )}
-            </div>
+              </div>
     
-            <CommentsSection url={result.url} />
+              {/* Comments Section */}
+              <CommentsSection url={result.url} />
             </div>
           </div>
         )}
     
+        {/* Auth Modal */}
         <AuthModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
           onAuthSuccess={handleAuthSuccess}
         />
     
+        {/* Feature Highlights */}
         {!result && !analyzing && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-8">
             {[
